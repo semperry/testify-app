@@ -6,6 +6,17 @@ const {spawn} = require("child_process")
 const Test = require("../models/testModel")
 const Challenge = require("../models/challengeModel")
 
+// GET all challenges
+router.get("/challenges", (req, res) => {
+	Challenge.find((err, results) => {
+		if(err){
+			res.status(404).json({ message: "Could not get challenges", errors: `${err}`})
+		}
+
+		res.status(200).json({ challenges: results })
+	})
+})
+
 // POST new challenge
 router.post("/challenge", (req, res) => {
 	const newChallenge = new Challenge(req.body)
