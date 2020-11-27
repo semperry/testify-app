@@ -1,4 +1,5 @@
 // TODO:
+// Refine models to include title and starter code
 // parse for language to determine process to run (js vs py)
 // Setup inital jasmine tests and snag output
 // Dynamic file naming algorithm to handle multiple writes.

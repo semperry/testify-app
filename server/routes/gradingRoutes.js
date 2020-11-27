@@ -57,14 +57,20 @@ router.patch("/challenge/:id", (req, res) => {
 router.post("/test", (req, res) => {
 	const newTest = new Test(req.body)
 
-	newTest
-	.save()
-	.then(data => {
-		res.status(201).json({ message: "Test successfully created", test: data})
+	Challenge.findOneAndUpdate({ _id: req.body.challenge }, { test: newTest._id }, (err, doc) => {
+		if(err){
+			res.status(404).json({ message: "Could not update challenge", errors: `${err}`})
+		}
+		newTest
+		.save()
+		.then(data => {
+			res.status(201).json({ message: "Test successfully created", test: data})
+		})
+		.catch(err => {
+			res.status(400).json({ message: "Could not create test", errors: `${err}`})
+		})
 	})
-	.catch(err => {
-		res.status(400).json({ message: "Could not create test", errors: `${err}`})
-	})
+
 })
 
 // POST submit solution

@@ -1,5 +1,5 @@
 import {useState, useEffect} from "react"
-import {useParams} from "react-router-dom"
+import {useParams, Link} from "react-router-dom"
 import axios from "axios"
 
 function Challenge(props){
@@ -38,6 +38,14 @@ function Challenge(props){
 		.catch(err => console.error("Could not fetch challenge: ", err))
 	}, [])
 
+	if (!challenge.test){
+		return(
+			<div>
+				<p>No test found for this challenge...</p>
+				<Link to="/new-test">Add one here</Link>
+			</div>
+		)
+	}
 	return (
 		<div>
 			<h1>Hello from Challenge</h1>
