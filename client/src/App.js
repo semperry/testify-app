@@ -6,10 +6,10 @@ function App() {
 
 	const renderChallanges = () => {
 		return challenges.map(challenge => {
-			const {_id} = challenge
+			const {_id, title} = challenge
 			return (
 				<div key={_id}>
-					<Link to={`/challenge/${_id}`}>{_id}</Link>
+					<Link to={`/challenge/${_id}`}>{title || _id}</Link>
 				</div>
 			)
 		})

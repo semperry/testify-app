@@ -13,9 +13,9 @@ function NewTest(props){
 			return (
 				<div 
 					style={{ cursor: "pointer"}}
-					onClick={e => setChosenId(e.target.innerText)}
+					onClick={e => setChosenId(challenge._id)}
 				>
-					{challenge._id}
+					{challenge.title || challenge._id}
 				</div>
 			)
 			}

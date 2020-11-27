@@ -70,7 +70,6 @@ router.post("/test", (req, res) => {
 			res.status(400).json({ message: "Could not create test", errors: `${err}`})
 		})
 	})
-
 })
 
 // POST submit solution
@@ -81,11 +80,14 @@ router.post("/submit-solution", (req, res) => {
 		if(err){
 			res.status(404).json({ message: "Could not post solution", errors: `${err}`})
 		}
-
-		fs.writeFileSync("./script-2.py", req.body.content + "\n\n" + challenge.test.content)
-
-		const script = spawn("py", ['script-2.py'])
+		const language = challenge.language.toLowerCase()
+		const ext = language == "python" ? language.slice(0, 2).toLowerCase() : "js"
+		const fileName = `test-${req.body.challengeId}-${Date.now()}.${ext}`
+		const cmd = language === "python" ? "python" : "node"
+		const script = spawn(cmd, [ fileName ])
 		const out = []
+
+		fs.writeFileSync(fileName, req.body.content + "\n\n" + challenge.test.content)
 		
 		script.stderr.on('data', (err) => {
 			console.log(err.toString())
@@ -95,7 +97,7 @@ router.post("/submit-solution", (req, res) => {
 		script.on('close', code => {
 			console.log(`Child Process ending with code: ${code}`)
 			console.log(out)
-			fs.unlinkSync("./script-2.py")
+			fs.unlinkSync(fileName)
 			res.status(200).json({ output: out.join("") })
 		})
 	})

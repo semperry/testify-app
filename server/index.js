@@ -1,9 +1,6 @@
 // TODO:
-// Refine models to include title and starter code
-// parse for language to determine process to run (js vs py)
+// On delete, erase sub documents
 // Setup inital jasmine tests and snag output
-// Dynamic file naming algorithm to handle multiple writes.
-// Dynamic command to run script based on NODE_ENV
 // Streamline whole workflow
 // Refactor
 require('dotenv').config()

@@ -34,7 +34,10 @@ function Challenge(props){
 	useEffect(() => {
 		fetch(`http://localhost:4000/challenge/${id}`)
 		.then(res => res.json())
-		.then(data => setChallenge(data.challenge))
+		.then(data => {
+			setChallenge(data.challenge)
+			setAttempt(data.challenge.starterCode)
+		})
 		.catch(err => console.error("Could not fetch challenge: ", err))
 	}, [])
 
@@ -48,7 +51,7 @@ function Challenge(props){
 	}
 	return (
 		<div>
-			<h1>Hello from Challenge</h1>
+			<h1>{challenge.title || challenge._id}</h1>
 			{renderChallenge()}
 			<form onSubmit={handleSubmit}>
 				<textarea 

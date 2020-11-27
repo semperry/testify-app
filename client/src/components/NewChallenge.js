@@ -4,6 +4,8 @@ import axios from "axios"
 
 function NewChallenge(props){
 	const [content, setContent] = useState("")
+	const [title, setTitle] = useState("")
+	const [starterCode, setStarterCode] = useState("")
 	const [language, setLanguage] = useState("python")
 
 	const handleSubmit = e => {
@@ -11,7 +13,9 @@ function NewChallenge(props){
 
 		axios.post("http://localhost:4000/challenge", {
 			content,
-			language
+			language,
+			title,
+			starterCode
 		})
 		.then(res => setContent(""))
 		.catch(err => console.error("Could not submit challenge: ", err))
@@ -29,9 +33,25 @@ function NewChallenge(props){
 					<option value="javascript">JavaScript</option>
 				</select>
 				<div>
+					<input
+						type="text"
+						value={title}
+						onChange={e => setTitle(e.target.value)}
+						placeholder="Title"
+					/>
+				</div>
+				<div>
 					<textarea 
 						value={content}
 						onChange={e => setContent(e.target.value)}
+						placeholder="Challenge Content"
+					/>
+				</div>
+				<div>
+					<textarea 
+						value={starterCode}
+						onChange={e => setStarterCode(e.target.value)}
+						placeholder="Starter code"
 					/>
 				</div>
 				<button type="submit">SUBMIT</button>
