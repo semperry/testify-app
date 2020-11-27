@@ -1,6 +1,6 @@
 // TODO:
+// Create custom js test-suite
 // On delete, erase sub documents
-// Setup inital jasmine tests and snag output
 // Streamline whole workflow
 // Refactor
 require('dotenv').config()

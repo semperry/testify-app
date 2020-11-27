@@ -1,7 +1,10 @@
 const fs = require('fs')
+const path = require('path')
 const express = require("express")
 const router = express.Router()
 const {spawn} = require("child_process")
+
+const baseDir = path.join(__dirname, "/../test/")
 
 const Test = require("../models/testModel")
 const Challenge = require("../models/challengeModel")
@@ -81,14 +84,16 @@ router.post("/submit-solution", (req, res) => {
 			res.status(404).json({ message: "Could not post solution", errors: `${err}`})
 		}
 		const language = challenge.language.toLowerCase()
-		const ext = language == "python" ? language.slice(0, 2).toLowerCase() : "js"
-		const fileName = `test-${req.body.challengeId}-${Date.now()}.${ext}`
+		const ext = language == "python" ? "py" : "js"
+		const fileName = `${req.body.challengeId}-${Date.now()}.${ext}`
 		const cmd = language === "python" ? "python" : "node"
-		const script = spawn(cmd, [ fileName ])
+		const script = spawn(cmd, [ baseDir + fileName ])
 		const out = []
 
-		fs.writeFileSync(fileName, req.body.content + "\n\n" + challenge.test.content)
-		
+		fs.writeFileSync(`${baseDir}${fileName}`, (language === "javascript" ? "const assert = require('assert')" + "\n\n" : "") + req.body.content + "\n\n" + challenge.test.content, (err) => {
+			console.log(err)
+		})
+			
 		script.stderr.on('data', (err) => {
 			console.log(err.toString())
 			out.push(err.toString())
@@ -97,7 +102,7 @@ router.post("/submit-solution", (req, res) => {
 		script.on('close', code => {
 			console.log(`Child Process ending with code: ${code}`)
 			console.log(out)
-			fs.unlinkSync(fileName)
+			// fs.unlinkSync(fileName)
 			res.status(200).json({ output: out.join("") })
 		})
 	})
