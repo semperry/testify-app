@@ -1,5 +1,4 @@
 // TODO:
-// Create custom js test-suite
 // On delete, erase sub documents
 // Streamline whole workflow
 // Refactor
@@ -33,7 +32,6 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use("/", gradeRoutes)
-
 
 app.listen(port, () => {
 	console.log(`Listening on port ${port}`)

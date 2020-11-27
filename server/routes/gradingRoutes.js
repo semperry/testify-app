@@ -88,11 +88,10 @@ router.post("/submit-solution", (req, res) => {
 		const fileName = `${req.body.challengeId}-${Date.now()}.${ext}`
 		const cmd = language === "python" ? "python" : "node"
 		const script = spawn(cmd, [ baseDir + fileName ])
+		const jsImports = 'const {describe, expect, it, showResults} = require("../libs/ryTest")\n\n'
 		const out = []
 
-		fs.writeFileSync(`${baseDir}${fileName}`, (language === "javascript" ? "const assert = require('assert')" + "\n\n" : "") + req.body.content + "\n\n" + challenge.test.content, (err) => {
-			console.log(err)
-		})
+		fs.writeFileSync(`${baseDir}${fileName}`, (language === "javascript" ? jsImports + "\n\n" : "") + req.body.content + "\n\n" + challenge.test.content + "\n\n" + (language === "javascript" ? "showResults()" : ""))
 			
 		script.stderr.on('data', (err) => {
 			console.log(err.toString())
