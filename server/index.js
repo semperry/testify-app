@@ -1,6 +1,8 @@
 // TODO:
+// Put route
 // On delete, erase sub documents
 // Streamline whole workflow
+// Seed Data
 // Refactor
 require('dotenv').config()
 const express = require('express')

@@ -4,10 +4,11 @@ const express = require("express")
 const router = express.Router()
 const {spawn} = require("child_process")
 
+const Challenge = require("../models/challengeModel")
+
 const baseDir = path.join(__dirname, "/../test/")
 
-const Test = require("../models/testModel")
-const Challenge = require("../models/challengeModel")
+const wait = (ms) =>  new Promise((resolve, reject) => setTimeout(() => resolve, ms))
 
 // GET all challenges
 router.get("/challenges", (req, res) => {
@@ -45,41 +46,33 @@ router.get("/challenge/:id", (req, res) => {
 	})
 })
 
-// PATCH challenge
-router.patch("/challenge/:id", (req, res) => {
-	Challenge.findOneAndUpdate({ _id: req.params.id}, {test: req.body.test}, (err, doc) => {
+// PUT challenge
+router.put("/challenge/:id", (req, res) => {
+	Challenge.findById({ _id: req.params.id}, (err, challenge) => {
 		if (err){
 			res.status(404).json({ message: "Could not update", errors: `${err}`})
 		}
 
-		res.status(200).json({ message: "updated", challenge: doc})
-	})
-})
+		const {title, starterCode, content, test, language} = req.body
+		challenge.title = title || challenge.title
+		challenge.starterCode = starterCode || challenge.starterCode
+		challenge.content = content || challenge.content
+		challenge.test = test || challenge.test
+		challenge.language = language || challenge.language
 
-// POST new test
-router.post("/test", (req, res) => {
-	const newTest = new Test(req.body)
-
-	Challenge.findOneAndUpdate({ _id: req.body.challenge }, { test: newTest._id }, (err, doc) => {
-		if(err){
-			res.status(404).json({ message: "Could not update challenge", errors: `${err}`})
-		}
-		newTest
+		challenge
 		.save()
 		.then(data => {
-			res.status(201).json({ message: "Test successfully created", test: data})
+			res.status(200).json({ message: "updated", challenge: data})
 		})
-		.catch(err => {
-			res.status(400).json({ message: "Could not create test", errors: `${err}`})
-		})
+		.catch(err => res.status(400).json({ message: "Could not update" , errors: `${err}`}))
 	})
 })
+
 
 // POST submit solution
 router.post("/submit-solution", (req, res) => {
-	Challenge.findOne({ _id: req.body.challengeId })
-	.populate('test')
-	.exec((err, challenge) => {
+	Challenge.findOne({ _id: req.body.challengeId }, (err, challenge) => {
 		if(err){
 			res.status(404).json({ message: "Could not post solution", errors: `${err}`})
 		}
@@ -91,17 +84,22 @@ router.post("/submit-solution", (req, res) => {
 		const jsImports = 'const {describe, expect, it, showResults} = require("../libs/ryTest")\n\n'
 		const out = []
 
-		fs.writeFileSync(`${baseDir}${fileName}`, (language === "javascript" ? jsImports + "\n\n" : "") + req.body.content + "\n\n" + challenge.test.content + "\n\n" + (language === "javascript" ? "showResults()" : ""))
+		fs.writeFile(`${baseDir}${fileName}`, (language === "javascript" ? jsImports + "\n\n" : "") + req.body.content + "\n\n" + challenge.test.content + "\n\n" + (language === "javascript" ? "showResults()" : ""), () => {})
 			
 		script.stderr.on('data', (err) => {
 			console.log(err.toString())
 			out.push(err.toString())
 		})
+		
+		script.stdout.on('data', (data) => {
+			console.log(data.toString())
+			out.push(data.toString())
+		})
 	
-		script.on('close', code => {
+		script.on('close', async code => {
 			console.log(`Child Process ending with code: ${code}`)
 			console.log(out)
-			// fs.unlinkSync(fileName)
+			// fs.unlinkSync(baseDir + fileName)
 			res.status(200).json({ output: out.join("") })
 		})
 	})
@@ -112,17 +110,6 @@ router.post("/submit-solution", (req, res) => {
 // challenge
 router.delete("/challenge/:id", (req, res) => {
 	Challenge.findByIdAndDelete(req.params.id, (err) => {
-		if(err){
-			res.json({ message: "Could not delete", errors: `${err}`})
-		}
-
-		res.json({ message: "Deleted"})
-	})
-})
-
-// test
-router.delete("/test/:id", (req, res) => {
-	Test.findByIdAndDelete(req.params.id, (err) => {
 		if(err){
 			res.json({ message: "Could not delete", errors: `${err}`})
 		}

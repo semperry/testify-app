@@ -7,6 +7,7 @@ function NewChallenge(props){
 	const [title, setTitle] = useState("")
 	const [starterCode, setStarterCode] = useState("")
 	const [language, setLanguage] = useState("python")
+	const [testContent, setTestContent] = useState("")
 
 	const handleSubmit = e => {
 		e.preventDefault()
@@ -15,7 +16,10 @@ function NewChallenge(props){
 			content,
 			language,
 			title,
-			starterCode
+			starterCode,
+			test: {
+				content: testContent
+			}
 		})
 		.then(res => setContent(""))
 		.catch(err => console.error("Could not submit challenge: ", err))
@@ -38,6 +42,7 @@ function NewChallenge(props){
 						value={title}
 						onChange={e => setTitle(e.target.value)}
 						placeholder="Title"
+						required
 					/>
 				</div>
 				<div>
@@ -45,6 +50,7 @@ function NewChallenge(props){
 						value={content}
 						onChange={e => setContent(e.target.value)}
 						placeholder="Challenge Content"
+						required
 					/>
 				</div>
 				<div>
@@ -52,6 +58,14 @@ function NewChallenge(props){
 						value={starterCode}
 						onChange={e => setStarterCode(e.target.value)}
 						placeholder="Starter code"
+					/>
+				</div>
+				<div>
+					<textarea 
+						value={testContent}
+						onChange={e => setTestContent(e.target.value)}
+						placeholder="Write a test"
+						required
 					/>
 				</div>
 				<button type="submit">SUBMIT</button>

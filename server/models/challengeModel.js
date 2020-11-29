@@ -8,7 +8,9 @@ const Challenges = new schema({
 	},
 	starterCode: String,
 	content: String,
-	test: {type: schema.Types.ObjectId, ref: "tests"},
+	test: {
+		content: String
+	},
 	language: {
 		type: String,
 		required: true

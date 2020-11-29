@@ -7,7 +7,6 @@ import App from './App';
 import Challenge from "./components/Challenge"
 import NewChallenge from './components/NewChallenge';
 import NavBar from './components/navigation/navBar';
-import NewTest from './components/NewTest';
 
 ReactDOM.render(
 	<BrowserRouter>
@@ -15,7 +14,6 @@ ReactDOM.render(
 	<Switch>
 		<Route path="/" exact component={App} />
 		<Route path="/new-challenge" component={NewChallenge} />
-		<Route path="/new-test" component={NewTest} />
 		<Route path="/challenge/:id" component={Challenge} />
 	</Switch>
 	</BrowserRouter>,

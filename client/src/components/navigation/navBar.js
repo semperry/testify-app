@@ -8,7 +8,6 @@ function NavBar(props){
 		<div>
 			<NavLink exact to="/">Home</NavLink>
 			<NavLink to="/new-challenge">Create Challenge</NavLink>
-			<NavLink to="/new-test">Create Test</NavLink>
 		</div>
 	)
 }
