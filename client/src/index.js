@@ -13,7 +13,7 @@ ReactDOM.render(
 	<NavBar />
 	<Switch>
 		<Route path="/" exact component={App} />
-		<Route path="/new-challenge" component={NewChallenge} />
+		<Route path="/new-challenge" linkText="Create" component={NewChallenge} />
 		<Route path="/challenge/:id" component={Challenge} />
 	</Switch>
 	</BrowserRouter>,
