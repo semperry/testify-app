@@ -1,17 +1,13 @@
-// TODO:
-// Blocking malicious code?
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+
 const express = require("express");
-const router = express.Router();
 
 const Challenge = require("../models/challengeModel");
 
+const router = express.Router();
 const baseDir = path.join(__dirname, "/../test/");
-
-const wait = (ms) =>
-	new Promise((resolve, reject) => setTimeout(() => resolve, ms));
 
 // GET all challenges
 router.get("/challenges", (req, res) => {
@@ -94,7 +90,6 @@ router.post("/submit-solution", (req, res) => {
 		const fileName = `${req.body.challengeId}-${Date.now()}.${ext}`;
 		const filePath = path.join(baseDir, fileName);
 
-		// Choose the appropriate Docker image and command
 		const dockerImage =
 			language === "python" ? "python:3.9-slim" : "node:18-slim";
 		const cmd = language === "python" ? "python3" : "node";
@@ -116,8 +111,6 @@ router.post("/submit-solution", (req, res) => {
 				.status(500)
 				.json({ error: "File creation failed", details: err.message });
 		}
-
-		// Use the selected Docker image and command
 		const dockerCommand = `docker run --rm -v ${baseDir}:/server/test:ro -w /server --read-only --memory=128m --cpus=".5" --user=nobody ${dockerImage} ${cmd} test/${fileName}`;
 
 		exec(dockerCommand, (error, stdout, stderr) => {
@@ -147,8 +140,7 @@ router.post("/submit-solution", (req, res) => {
 	});
 });
 
-// Deletes
-// challenge
+// Deletes Challenge
 router.delete("/challenge/:id", (req, res) => {
 	Challenge.findByIdAndDelete(req.params.id, (err) => {
 		if (err) {
@@ -157,21 +149,6 @@ router.delete("/challenge/:id", (req, res) => {
 
 		res.json({ message: "Deleted" });
 	});
-});
-
-checkKey = (req, res, next) => {
-	if (req.body.key === "1234") {
-		next();
-	} else {
-		res.status(401).json({ message: "Needs api key" });
-	}
-};
-
-// GET Hello App
-router.post("/hello", checkKey, (req, res) => {
-	const { email, password } = req.body;
-
-	res.send(email);
 });
 
 module.exports = router;
