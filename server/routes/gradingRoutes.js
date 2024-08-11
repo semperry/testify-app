@@ -2,9 +2,9 @@
 // Blocking malicious code?
 const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
 const express = require("express");
 const router = express.Router();
-const { spawn, spawnSync } = require("child_process");
 
 const Challenge = require("../models/challengeModel");
 
@@ -84,48 +84,65 @@ router.put("/challenge/:id", (req, res) => {
 router.post("/submit-solution", (req, res) => {
 	Challenge.findOne({ _id: req.body.challengeId }, (err, challenge) => {
 		if (err) {
-			res
+			return res
 				.status(404)
 				.json({ message: "Could not post solution", errors: `${err}` });
 		}
+
 		const language = challenge.language.toLowerCase();
-		const ext = language == "python" ? "py" : "js";
+		const ext = language === "python" ? "py" : "js";
 		const fileName = `${req.body.challengeId}-${Date.now()}.${ext}`;
-		const cmd = language === "python" ? "python" : "node";
-		const jsImports =
-			'const {describe, expect, it, showResults} = require("../libs/ryTest")\n\n';
-		const out = [];
+		const filePath = path.join(baseDir, fileName);
 
-		fs.writeFile(
-			`${baseDir}${fileName}`,
-			(language === "javascript" ? jsImports + "\n\n" : "") +
-				req.body.content +
-				"\n\n" +
-				challenge.test.content +
-				"\n\n" +
-				(language === "javascript" ? "showResults()" : ""),
-			() => {}
-		);
+		// Choose the appropriate Docker image and command
+		const dockerImage =
+			language === "python" ? "python:3.9-slim" : "node:18-slim";
+		const cmd = language === "python" ? "python3" : "node";
 
-		const script = spawn(cmd, [baseDir + fileName], {
-			shell: language === "python",
-		});
+		const jsImports = `const {describe, expect, it, showResults} = require("./ryTest")\n\n`;
 
-		script.stderr.on("data", (err) => {
-			console.log(err.toString());
-			out.push(err.toString());
-		});
+		try {
+			fs.writeFileSync(
+				filePath,
+				(language === "javascript" ? jsImports + "\n\n" : "") +
+					req.body.content +
+					"\n\n" +
+					challenge.test.content +
+					"\n\n" +
+					(language === "javascript" ? "showResults()" : "")
+			);
+		} catch (err) {
+			return res
+				.status(500)
+				.json({ error: "File creation failed", details: err.message });
+		}
 
-		script.stdout.on("data", (data) => {
-			console.log(data.toString());
-			out.push(data.toString());
-		});
+		// Use the selected Docker image and command
+		const dockerCommand = `docker run --rm -v ${baseDir}:/server/test:ro -w /server --read-only --memory=128m --cpus=".5" --user=nobody ${dockerImage} ${cmd} test/${fileName}`;
 
-		script.on("close", async (code) => {
-			console.log(`Child Process ending with code: ${code}`);
-			console.log(out);
-			fs.unlinkSync(baseDir + fileName);
-			res.status(200).json({ output: out.join("") });
+		exec(dockerCommand, (error, stdout, stderr) => {
+			if (error) {
+				console.error(`Error: ${stderr}`);
+				fs.unlink(filePath, (unlinkErr) => {
+					if (unlinkErr)
+						console.error(`Failed to delete file: ${unlinkErr.message}`);
+				});
+				return res
+					.status(200)
+					.json({ error: "Internal server error", output: stderr || stdout });
+			}
+
+			fs.unlink(filePath, (unlinkErr) => {
+				if (unlinkErr) {
+					console.error(`Failed to delete file: ${unlinkErr.message}`);
+					return res.status(500).json({
+						error: "File deletion failed",
+						details: unlinkErr.message,
+					});
+				}
+
+				res.status(200).json({ output: stdout || stderr });
+			});
 		});
 	});
 });
