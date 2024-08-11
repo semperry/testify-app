@@ -18,16 +18,21 @@ function Challenge(props) {
 		);
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		axios
+		const data = await axios
 			.post("http://localhost:4000/submit-solution", {
 				challengeId: id,
 				content: attempt,
 			})
-			.then((res) => setResults(String(res.data.output)))
-			.catch((err) => console.error(err));
+			.then((res) => res.data)
+			.catch((err) => {
+				console.error(err);
+				return err;
+			});
+
+		setResults(data.output || `Failed: ${data}`);
 	};
 
 	useEffect(() => {
